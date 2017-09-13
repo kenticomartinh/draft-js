@@ -20,7 +20,8 @@ var DraftOffsetKey = require('DraftOffsetKey');
 var EditorState = require('EditorState');
 var UserAgent = require('UserAgent');
 
-var findAncestorOffsetKey = require('findAncestorOffsetKey');
+var findAncestorOffsetKeyNode = require('findAncestorOffsetKeyNode');
+var getSelectionOffsetKeyForNode = require('getSelectionOffsetKeyForNode');
 var nullthrows = require('nullthrows');
 
 var isGecko = UserAgent.isEngine('Gecko');
@@ -64,30 +65,10 @@ function editOnInput(editor: DraftEditor): void {
     }
   }
 
-  if (
-    anchorNode.nodeType === Node.TEXT_NODE &&
-    (anchorNode.previousSibling !== null || anchorNode.nextSibling !== null)
-  ) {
-    // When typing at the beginning of a visual line, Chrome splits the text
-    // nodes into two. Why? No one knows. This commit is suspicious:
-    // https://chromium.googlesource.com/chromium/src/+/a3b600981286b135632371477f902214c55a1724
-    // To work around, we'll merge the sibling text nodes back into this one.
-    const span = anchorNode.parentNode;
-    anchorNode.nodeValue = span.textContent;
-    for (
-      let child = span.firstChild;
-      child !== null;
-      child = child.nextSibling
-    ) {
-      if (child !== anchorNode) {
-        span.removeChild(child);
-      }
-    }
-  }
-
-  var domText = anchorNode.textContent;
+  var offsetKeyNode = nullthrows(findAncestorOffsetKeyNode(anchorNode));
+  var domText = offsetKeyNode.textContent;
   var editorState = editor._latestEditorState;
-  var offsetKey = nullthrows(findAncestorOffsetKey(anchorNode));
+  var offsetKey = nullthrows(getSelectionOffsetKeyForNode(offsetKeyNode));
   var {blockKey, decoratorKey, leafKey} = DraftOffsetKey.decode(offsetKey);
 
   var {start, end} = editorState

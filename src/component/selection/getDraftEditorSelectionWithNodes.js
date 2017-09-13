@@ -17,6 +17,8 @@ import type {DOMDerivedSelection} from 'DOMDerivedSelection';
 import type EditorState from 'EditorState';
 
 var findAncestorOffsetKey = require('findAncestorOffsetKey');
+var findAncestorOffsetKeyNode = require('findAncestorOffsetKeyNode');
+var getOffsetInNode = require('getOffsetInNode');
 var getSelectionOffsetKeyForNode = require('getSelectionOffsetKeyForNode');
 var getUpdatedSelectionState = require('getUpdatedSelectionState');
 var invariant = require('invariant');
@@ -46,13 +48,15 @@ function getDraftEditorSelectionWithNodes(
   // Find the nearest offset-aware elements and use the
   // offset values supplied by the selection range.
   if (anchorIsTextNode && focusIsTextNode) {
+    let anchorKeyNode = nullthrows(findAncestorOffsetKeyNode(anchorNode));
+    let focusKeyNode = nullthrows(findAncestorOffsetKeyNode(focusNode));
     return {
       selectionState: getUpdatedSelectionState(
         editorState,
-        nullthrows(findAncestorOffsetKey(anchorNode)),
-        anchorOffset,
-        nullthrows(findAncestorOffsetKey(focusNode)),
-        focusOffset,
+        nullthrows(getSelectionOffsetKeyForNode(anchorKeyNode)),
+        getOffsetInNode(anchorKeyNode, anchorNode, anchorOffset),
+        nullthrows(getSelectionOffsetKeyForNode(focusKeyNode)),
+        getOffsetInNode(focusKeyNode, focusNode, focusOffset),
       ),
       needsRecovery: false,
     };
@@ -81,15 +85,17 @@ function getDraftEditorSelectionWithNodes(
   // ensure proper selection state maintenance.
 
   if (anchorIsTextNode) {
+    const anchorKeyNode = nullthrows(findAncestorOffsetKeyNode(anchorNode));
     anchorPoint = {
-      key: nullthrows(findAncestorOffsetKey(anchorNode)),
-      offset: anchorOffset,
+      key: nullthrows(getSelectionOffsetKeyForNode(anchorKeyNode)),
+      offset: getOffsetInNode(anchorKeyNode, anchorNode, anchorOffset),
     };
     focusPoint = getPointForNonTextNode(root, focusNode, focusOffset);
   } else if (focusIsTextNode) {
+    const focusKeyNode = nullthrows(findAncestorOffsetKeyNode(focusNode));
     focusPoint = {
-      key: nullthrows(findAncestorOffsetKey(focusNode)),
-      offset: focusOffset,
+      key: nullthrows(getSelectionOffsetKeyForNode(focusKeyNode)),
+      offset: getOffsetInNode(focusKeyNode, focusNode, focusOffset),
     };
     anchorPoint = getPointForNonTextNode(root, anchorNode, anchorOffset);
   } else {

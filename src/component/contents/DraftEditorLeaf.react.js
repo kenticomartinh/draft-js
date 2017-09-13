@@ -22,7 +22,7 @@ var React = require('React');
 var ReactDOM = require('ReactDOM');
 
 const invariant = require('invariant');
-var setDraftEditorSelection = require('setDraftEditorSelection');
+var setDraftEditorSelectionRecursive = require('setDraftEditorSelectionRecursive');
 
 type Props = {
   // The block that contains this leaf.
@@ -57,8 +57,11 @@ type Props = {
 };
 
 /**
- * All leaf nodes in the editor are spans with single text nodes. Leaf
- * elements are styled based on the merging of an optional custom style map
+ * All leaf nodes in the editor are rendered as spans with single text nodes.
+ * This may however be affected by external code such as spell-check extensions
+ * therefore we need to expect that the text may split into more descendants
+ * in all related code that ensures sync with DOM.
+ * Leaf elements are styled based on the merging of an optional custom style map
  * and a default style map.
  *
  * `DraftEditorLeaf` also provides a wrapper for calling into the imperative
@@ -90,25 +93,11 @@ class DraftEditorLeaf extends React.Component<Props> {
       return;
     }
 
-    // Determine the appropriate target node for selection. If the child
-    // is not a text node, it is a <br /> spacer. In this case, use the
-    // <span> itself as the selection target.
+    // Apply the selection to the DOM node and its descendants
     const node = ReactDOM.findDOMNode(this);
     invariant(node, 'Missing node');
-    const child = node.firstChild;
-    invariant(child, 'Missing child');
-    let targetNode;
 
-    if (child.nodeType === Node.TEXT_NODE) {
-      targetNode = child;
-    } else if (child.tagName === 'BR') {
-      targetNode = node;
-    } else {
-      targetNode = child.firstChild;
-      invariant(targetNode, 'Missing targetNode');
-    }
-
-    setDraftEditorSelection(selection, targetNode, blockKey, start, end);
+    setDraftEditorSelectionRecursive(selection, node, blockKey, start, end);
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
