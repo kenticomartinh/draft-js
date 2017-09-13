@@ -184,12 +184,12 @@ class DraftEditorContents extends React.Component<Props> {
       const Component = CustomComponent || DraftEditorBlock;
       let childProps = {
         className,
-        'data-block': true,
+        'data-block-mod': true,
         /* $FlowFixMe(>=0.53.0 site=www,mobile) This comment suppresses an
          * error when upgrading Flow's support for React. Common errors found
          * when upgrading Flow's React support are documented at
          * https://fburl.com/eq7bs81w */
-        'data-editor': this.props.editorKey,
+        'data-editor-mod': this.props.editorKey,
         'data-offset-key': offsetKey,
         key,
       };
