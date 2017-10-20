@@ -344,18 +344,24 @@ class DraftEditor extends React.Component<DraftEditorProps, State> {
 
   _onChangeDOM(mutations): void {
     if (this._stoppedObservings === 0) {
-      let newEditorState = this.props.editorState;
+      let syncNode;
       mutations.forEach(mutation => {
         var offsetKeyNode = findAncestorOffsetKeyNode(mutation.target);
         if (offsetKeyNode) {
-          const changedState = syncNodeTextToEditor(this, offsetKeyNode);
-          if (changedState) {
-            newEditorState = changedState;
-          }
+          syncNode = mutation.target;
         }
       });
-      if (newEditorState !== this.props.editorState) {
-        this.update(newEditorState);
+      if (syncNode) {
+        const editor = this;
+        window.setTimeout(() => {
+          const offsetKeyNode = findAncestorOffsetKeyNode(syncNode);
+          if (offsetKeyNode) {
+            const newEditorState = syncNodeTextToEditor(editor, offsetKeyNode);
+            if (newEditorState) {
+              editor.update(newEditorState);
+            }
+          }
+        }, 0);
       }
     }
   }

@@ -72,9 +72,6 @@ type Props = {
  * maintain the selection state.
  */
 class DraftEditorLeaf extends React.Component<Props> {
-
-  lastRenderedText;
-
   /**
    * By making individual leaf instances aware of their context within
    * the text of the editor, we can set our selection range more
@@ -110,9 +107,9 @@ class DraftEditorLeaf extends React.Component<Props> {
     const leafNode = ReactDOM.findDOMNode(this.refs.leaf);
     invariant(leafNode, 'Missing leafNode');
     return (
-      (this.props.text !== nextProps.text) ||
-      (nextProps.styleSet !== this.props.styleSet) ||
-      ((this.lastRenderedText === leafNode.textContent) && nextProps.forceSelection)
+      leafNode.textContent !== nextProps.text ||
+      nextProps.styleSet !== this.props.styleSet ||
+      nextProps.forceSelection
     );
   }
 
@@ -167,8 +164,6 @@ class DraftEditorLeaf extends React.Component<Props> {
       const newStyles = customStyleFn(styleSet, block);
       styleObj = Object.assign(styleObj, newStyles);
     }
-
-    this.lastRenderedText = text;
 
     return (
       <span

@@ -6,28 +6,26 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  *
- * @providesModule findAncestorOffsetKeyNode
+ * @providesModule findAncestorBlockNode
  * @typechecks
  * @flow
  */
 
 'use strict';
 
-var getSelectionOffsetKeyNode = require('getSelectionOffsetKeyNode');
-
 /**
- * Get the node's nearest offset-aware ancestor.
+ * Get the node's nearest ancestor block.
  */
-function findAncestorOffsetKeyNode(node: Node): ?Node {
+function findAncestorBlockNode(node: Node): ?Node {
   let searchNode = node;
-  while (searchNode && searchNode !== document.documentElement) {
-    var keyNode = getSelectionOffsetKeyNode(searchNode);
-    if (keyNode) {
-      return keyNode;
+  while (searchNode && searchNode.parentNode !== document.documentElement) {
+    var isBlock = (searchNode.parentNode.getAttribute('data-contents') === 'true');
+    if (isBlock) {
+      return searchNode;
     }
     searchNode = searchNode.parentNode;
   }
   return null;
 }
 
-module.exports = findAncestorOffsetKeyNode;
+module.exports = findAncestorBlockNode;
