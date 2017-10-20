@@ -79,6 +79,8 @@ function editOnBeforeInput(
   editor: DraftEditor,
   e: SyntheticInputEvent<>,
 ): void {
+  editor.stopObserving();
+
   if (editor._pendingStateFromBeforeInput !== undefined) {
     editor.update(editor._pendingStateFromBeforeInput);
     editor._pendingStateFromBeforeInput = undefined;
@@ -103,6 +105,7 @@ function editOnBeforeInput(
     editor.props.handleBeforeInput &&
     isEventHandled(editor.props.handleBeforeInput(chars, editorState))
   ) {
+    editor.startObserving();
     e.preventDefault();
     return;
   }
@@ -114,6 +117,7 @@ function editOnBeforeInput(
   var anchorKey = selection.getAnchorKey();
 
   if (!selection.isCollapsed()) {
+    editor.startObserving();
     e.preventDefault();
     editor.update(
       replaceText(
@@ -188,6 +192,7 @@ function editOnBeforeInput(
   }
 
   if (mustPreventNative) {
+    editor.startObserving();
     e.preventDefault();
     editor.update(newEditorState);
     return;

@@ -30,6 +30,8 @@ type Props = {
   blockStyleFn: (block: ContentBlock) => string,
   editorState: EditorState,
   textDirectionality?: BidiDirection,
+  startObserving: Function,
+  stopObserving: Function,
 };
 
 /**
@@ -154,6 +156,8 @@ class DraftEditorContents extends React.Component<Props> {
         offsetKey,
         selection,
         tree: editorState.getBlockTree(key),
+        startObserving: this.props.startObserving,
+        stopObserving: this.props.stopObserving,
       };
 
       const configForType = blockRenderMap.get(blockType);

@@ -51,6 +51,8 @@ type Props = {
   blockProps?: Object,
   startIndent?: boolean,
   blockStyleFn: Function,
+  startObserving: Function,
+  stopObserving: Function,
 };
 
 /**
@@ -88,6 +90,8 @@ class DraftEditorBlock extends React.Component<Props> {
    * scroll parent.
    */
   componentDidMount(): void {
+    this.props.startObserving();
+
     var selection = this.props.selection;
     var endKey = selection.getEndKey();
     if (!selection.getHasFocus() || endKey !== this.props.block.getKey()) {
@@ -127,6 +131,18 @@ class DraftEditorBlock extends React.Component<Props> {
     }
   }
 
+  componentDidUpdate(): void {
+    this.props.startObserving();
+  }
+
+  componentWillUpdate(): void {
+    this.props.stopObserving();
+  }
+
+  componentWillMount(): void {
+    this.props.stopObserving();
+  }
+
   _renderChildren(): Array<React.Element<any>> {
     var block = this.props.block;
     var blockKey = block.getKey();
@@ -158,6 +174,8 @@ class DraftEditorBlock extends React.Component<Props> {
             customStyleMap={this.props.customStyleMap}
             customStyleFn={this.props.customStyleFn}
             isLast={ii === lastLeafSet && jj === lastLeaf}
+            startObserving={this.props.startObserving}
+            stopObserving={this.props.stopObserving}
           />
         );
       }).toArray();
