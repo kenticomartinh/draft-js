@@ -38,6 +38,8 @@ const emptyFunction = require('emptyFunction');
 const generateRandomKey = require('generateRandomKey');
 const getDefaultKeyBinding = require('getDefaultKeyBinding');
 const getScrollPosition = require('getScrollPosition');
+const syncNodeTextToEditor = require('syncNodeTextToEditor');
+const findAncestorOffsetKeyNode = require('findAncestorOffsetKeyNode');
 const invariant = require('invariant');
 const nullthrows = require('nullthrows');
 
@@ -87,6 +89,8 @@ class DraftEditor extends React.Component<DraftEditorProps, State> {
   _latestEditorState: EditorState;
   _latestCommittedEditorState: EditorState;
   _pendingStateFromBeforeInput: void | EditorState;
+  _observer: MutationObserver;
+  _stoppedObservings: number = 0;
 
   /**
    * Define proxies that can route events to the current handler.
@@ -123,6 +127,9 @@ class DraftEditor extends React.Component<DraftEditorProps, State> {
   update: (editorState: EditorState) => void;
   onDragEnter: () => void;
   onDragLeave: () => void;
+  onChangeDOM: (mutations) => void;
+  stopObserving: () => void;
+  startObserving: () => void;
 
   constructor(props: DraftEditorProps) {
     super(props);
@@ -169,9 +176,15 @@ class DraftEditor extends React.Component<DraftEditorProps, State> {
     this.update = this._update.bind(this);
     this.onDragEnter = this._onDragEnter.bind(this);
     this.onDragLeave = this._onDragLeave.bind(this);
+    this.onChangeDOM = this._onChangeDOM.bind(this);
+    this.stopObserving = this._stopObserving.bind(this);
+    this.startObserving = this._startObserving.bind(this);
 
     // See `_restoreEditorDOM()`.
     this.state = {contentsKey: 0};
+
+    this._observer = new MutationObserver(this.onChangeDOM);
+    this._stoppedObservings = 0;
   }
 
   /**
@@ -312,6 +325,8 @@ class DraftEditor extends React.Component<DraftEditorProps, State> {
               editorState={this.props.editorState}
               key={'contents' + this.state.contentsKey}
               textDirectionality={this.props.textDirectionality}
+              startObserving={this.startObserving}
+              stopObserving={this.stopObserving}
             />
           </div>
         </div>
@@ -319,7 +334,40 @@ class DraftEditor extends React.Component<DraftEditorProps, State> {
     );
   }
 
+  _startObserving(): void {
+    this._stoppedObservings--;
+  }
+
+  _stopObserving(): void {
+    this._stoppedObservings++;
+  }
+
+  _onChangeDOM(mutations): void {
+    if (this._stoppedObservings === 0) {
+      let newEditorState = this.props.editorState;
+      mutations.forEach(mutation => {
+        var offsetKeyNode = findAncestorOffsetKeyNode(mutation.target);
+        if (offsetKeyNode) {
+          const changedState = syncNodeTextToEditor(this, offsetKeyNode);
+          if (changedState) {
+            newEditorState = changedState;
+          }
+        }
+      });
+      if (newEditorState !== this.props.editorState) {
+        this.update(newEditorState);
+      }
+    }
+  }
+
   componentDidMount(): void {
+    const containerNode = ReactDOM.findDOMNode(this.refs.editorContainer);
+    this._observer.observe(containerNode, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+      characterDataOldValue: true,
+    });
     this.setMode('edit');
 
     /**
