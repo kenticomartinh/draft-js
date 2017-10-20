@@ -62,7 +62,12 @@ type Props = {
  * appropriate decorator and inline style components.
  */
 class DraftEditorBlock extends React.Component<Props> {
+
+  lastRenderedText;
+
   shouldComponentUpdate(nextProps: Props): boolean {
+    const blockNode = ReactDOM.findDOMNode(this.refs.block);
+    invariant(blockNode, 'Missing blockNode');
     return (
       this.props.block !== nextProps.block ||
       this.props.tree !== nextProps.tree ||
@@ -72,7 +77,8 @@ class DraftEditorBlock extends React.Component<Props> {
           nextProps.selection,
           nextProps.block.getKey(),
         ) &&
-        nextProps.forceSelection
+        nextProps.forceSelection &&
+        (this.lastRenderedText === blockNode.textContent)
       )
     );
   }
@@ -237,8 +243,10 @@ class DraftEditorBlock extends React.Component<Props> {
       'public/DraftStyleDefault/rtl': direction === 'RTL',
     });
 
+    this.lastRenderedText = this.props.text;
+
     return (
-      <div data-offset-key={offsetKey} className={className}>
+      <div data-offset-key={offsetKey} className={className} ref="block">
         {this._renderChildren()}
       </div>
     );

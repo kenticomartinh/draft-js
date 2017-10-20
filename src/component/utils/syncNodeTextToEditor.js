@@ -20,6 +20,7 @@ var DraftOffsetKey = require('DraftOffsetKey');
 var EditorState = require('EditorState');
 
 var getSelectionOffsetKeyForNode = require('getSelectionOffsetKeyForNode');
+var findAncestorBlockNode = require('findAncestorBlockNode');
 var nullthrows = require('nullthrows');
 
 var DOUBLE_NEWLINE = '\n\n';
@@ -36,34 +37,44 @@ function syncNodeTextToEditor(
     var offsetKey = nullthrows(getSelectionOffsetKeyForNode(offsetKeyNode));
     var {blockKey, decoratorKey, leafKey} = DraftOffsetKey.decode(offsetKey);
 
-    var {start, end} = editorState
-        .getBlockTree(blockKey)
-        .getIn([decoratorKey, 'leaves', leafKey]);
-
     var content = editorState.getCurrentContent();
     var block = content.getBlockForKey(blockKey);
-    var modelText = block.getText().slice(start, end);
+    var blockText = block.getText();
+
+    var blockNode = findAncestorBlockNode(offsetKeyNode);
+    var domBlockText = blockNode.textContent;
+
+    // No change in the entire block -- the DOM is up to date. Nothing to do here.
+    if (domBlockText === blockText) {
+      return null;
+    }
+
+    var {start, end} = editorState
+      .getBlockTree(blockKey)
+      .getIn([decoratorKey, 'leaves', leafKey]);
+
+    var modelText = blockText.slice(start, end);
 
     // Special-case soft newlines here. If the DOM text ends in a soft newline,
     // we will have manually inserted an extra soft newline in DraftEditorLeaf.
     // We want to remove this extra newline for the purpose of our comparison
     // of DOM and model text.
     if (domText.endsWith(DOUBLE_NEWLINE)) {
-        domText = domText.slice(0, -1);
+      domText = domText.slice(0, -1);
     }
 
     // No change -- the DOM is up to date. Nothing to do here.
     if (domText === modelText) {
-        return null;
+      return null;
     }
 
     var selection = editorState.getSelection();
 
     // We'll replace the entire leaf with the text content of the target.
     var targetRange = selection.merge({
-        anchorOffset: start,
-        focusOffset: end,
-        isBackward: false,
+      anchorOffset: start,
+      focusOffset: end,
+      isBackward: false,
     });
 
     const entityKey = block.getEntityAt(start);
@@ -78,11 +89,11 @@ function syncNodeTextToEditor(
     const changeType = preserveEntity ? 'spellcheck-change' : 'apply-entity';
 
     const newContent = DraftModifier.replaceText(
-        content,
-        targetRange,
-        domText,
-        block.getInlineStyleAt(start),
-        preserveEntity ? block.getEntityAt(start) : null,
+      content,
+      targetRange,
+      domText,
+      block.getInlineStyleAt(start),
+      preserveEntity ? block.getEntityAt(start) : null,
     );
 
     // We don't change the selection by this sync operation
@@ -92,9 +103,9 @@ function syncNodeTextToEditor(
     });
 
     return EditorState.push(
-        editorState,
-        contentWithAdjustedDOMSelection,
-        changeType,
+      editorState,
+      contentWithAdjustedDOMSelection,
+      changeType,
     );
 }
 
