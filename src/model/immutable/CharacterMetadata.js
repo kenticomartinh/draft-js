@@ -24,6 +24,7 @@ type CharacterMetadataConfigValueType = DraftInlineStyle | ?string;
 type CharacterMetadataConfig = {
   style?: CharacterMetadataConfigValueType,
   entity?: CharacterMetadataConfigValueType,
+  cid?: CharacterMetadataConfigValueType,
 };
 
 const EMPTY_SET = OrderedSet();
@@ -31,6 +32,7 @@ const EMPTY_SET = OrderedSet();
 var defaultRecord: CharacterMetadataConfig = {
   style: EMPTY_SET,
   entity: null,
+  cid: null,
 };
 
 var CharacterMetadataRecord = Record(defaultRecord);
