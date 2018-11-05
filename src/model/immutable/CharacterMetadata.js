@@ -119,16 +119,16 @@ class CharacterMetadata extends CharacterMetadataRecord {
     var existing: ?CharacterMetadata = pool.get(configMap);
     if (existing) {
       return config.id
-        ? existing
-        : CharacterMetadata.setId(existing, config.id);
+        ? CharacterMetadata.setId(existing, config.id)
+        : existing;
     }
 
     var newCharacter = new CharacterMetadata(configMap);
     pool = pool.set(configMap, newCharacter);
 
     return config.id
-      ? newCharacter
-      : CharacterMetadata.setId(newCharacter, config.id);
+      ? CharacterMetadata.setId(newCharacter, config.id)
+      : newCharacter;
   }
 }
 
