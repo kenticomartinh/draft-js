@@ -973,7 +973,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var defaultRecord = {
 	  style: EMPTY_SET,
 	  entity: null,
-	  cid: null
+	  id: null
 	};
 
 	var CharacterMetadataRecord = Record(defaultRecord);
@@ -997,6 +997,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  CharacterMetadata.prototype.hasStyle = function hasStyle(style) {
 	    return this.getStyle().includes(style);
+	  };
+
+	  CharacterMetadata.prototype.getId = function getId() {
+	    return this.get('id');
+	  };
+
+	  CharacterMetadata.setId = function setId(record, id) {
+	    var withId = record.set('id', id);
+	    // We don't need to pool this one as ID is not pooled
+	    return withId;
+	  };
+
+	  CharacterMetadata.removeId = function removeId(record) {
+	    var withoutId = record.remove('id');
+	    // We don't need to pool this one as ID is not pooled
+	    return CharacterMetadata.create(withoutId);
 	  };
 
 	  CharacterMetadata.applyStyle = function applyStyle(record, style) {
@@ -1033,18 +1049,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    // Fill in unspecified properties, if necessary.
-	    var configMap = Map(defaultConfig).merge(config).merge({ cid: undefined });
+	    var configMap = Map(defaultConfig).merge(config).merge({ id: undefined });
 
-	    // Pool base data without cid which is always unique (pooling would be useless)
+	    // Pool base data without id which is always unique (pooling would be useless)
 	    var existing = pool.get(configMap);
 	    if (existing) {
-	      return existing;
+	      return config.id ? existing : CharacterMetadata.setId(existing, config.id);
 	    }
 
 	    var newCharacter = new CharacterMetadata(configMap);
 	    pool = pool.set(configMap, newCharacter);
 
-	    return config.cid ? newCharacter : newCharacter.set('cid', config.cid);
+	    return config.id ? newCharacter : CharacterMetadata.setId(newCharacter, config.id);
 	  };
 
 	  return CharacterMetadata;
