@@ -1054,13 +1054,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // Pool base data without id which is always unique (pooling would be useless)
 	    var existing = pool.get(configMap);
 	    if (existing) {
-	      return config.id ? existing : CharacterMetadata.setId(existing, config.id);
+	      return config.id ? CharacterMetadata.setId(existing, config.id) : existing;
 	    }
 
 	    var newCharacter = new CharacterMetadata(configMap);
 	    pool = pool.set(configMap, newCharacter);
 
-	    return config.id ? newCharacter : CharacterMetadata.setId(newCharacter, config.id);
+	    return config.id ? CharacterMetadata.setId(newCharacter, config.id) : newCharacter;
 	  };
 
 	  return CharacterMetadata;
