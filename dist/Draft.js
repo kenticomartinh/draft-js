@@ -1033,8 +1033,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    // Fill in unspecified properties, if necessary.
-	    var configMap = Map(defaultConfig).merge(config);
+	    var configMap = Map(defaultConfig).merge(config).merge({ cid: undefined });
 
+	    // Pool base data without cid which is always unique (pooling would be useless)
 	    var existing = pool.get(configMap);
 	    if (existing) {
 	      return existing;
@@ -1042,7 +1043,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var newCharacter = new CharacterMetadata(configMap);
 	    pool = pool.set(configMap, newCharacter);
-	    return newCharacter;
+
+	    return config.cid ? newCharacter : newCharacter.set('cid', config.cid);
 	  };
 
 	  return CharacterMetadata;
@@ -8247,6 +8249,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      styleObj = _assign(styleObj, newStyles);
 	    }
 
+	    var className = styleObj.className;
+	    if (className) {
+	      styleObj.className = undefined;
+	    }
+
 	    return React.createElement(
 	      'span',
 	      {
@@ -8254,6 +8261,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        ref: function ref(_ref) {
 	          return _this2.leaf = _ref;
 	        },
+	        className: className,
 	        style: styleObj },
 	      React.createElement(
 	        DraftEditorTextNode,
