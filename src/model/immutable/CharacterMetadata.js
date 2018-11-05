@@ -24,6 +24,7 @@ type CharacterMetadataConfigValueType = DraftInlineStyle | ?string;
 type CharacterMetadataConfig = {
   style?: CharacterMetadataConfigValueType,
   entity?: CharacterMetadataConfigValueType,
+  // Collaborative ID
   cid?: CharacterMetadataConfigValueType,
 };
 
@@ -94,8 +95,9 @@ class CharacterMetadata extends CharacterMetadataRecord {
     };
 
     // Fill in unspecified properties, if necessary.
-    var configMap = Map(defaultConfig).merge(config);
+    var configMap = Map(defaultConfig).merge(config).merge({ cid: undefined });
 
+    // Pool base data without cid which is always unique (pooling would be useless)
     var existing: ?CharacterMetadata = pool.get(configMap);
     if (existing) {
       return existing;
@@ -103,7 +105,8 @@ class CharacterMetadata extends CharacterMetadataRecord {
 
     var newCharacter = new CharacterMetadata(configMap);
     pool = pool.set(configMap, newCharacter);
-    return newCharacter;
+
+    return config.cid ? newCharacter : newCharacter.set('cid', config.cid);
   }
 }
 
