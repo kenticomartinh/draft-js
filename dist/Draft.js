@@ -11369,8 +11369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var newBlock = targetBlock.merge({
 	    text: text.slice(0, targetOffset) + fragmentBlock.getText() + text.slice(targetOffset),
-	    characterList: insertIntoList(chars, fragmentBlock.getCharacterList(), targetOffset),
-	    data: fragmentBlock.getData()
+	    characterList: insertIntoList(chars, fragmentBlock.getCharacterList(), targetOffset)
 	  });
 
 	  return contentState.merge({
