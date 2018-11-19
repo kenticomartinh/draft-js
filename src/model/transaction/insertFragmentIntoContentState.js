@@ -89,7 +89,6 @@ const updateHead = (
     text: headText + appendToHead.getText(),
     characterList: headCharacters.concat(appendToHead.getCharacterList()),
     type: headText ? block.getType() : appendToHead.getType(),
-    data: appendToHead.getData(),
   });
 };
 
@@ -115,7 +114,6 @@ const updateTail = (
   return prependToTail.merge({
     text: prependToTail.getText() + tailText,
     characterList: prependToTail.getCharacterList().concat(tailCharacters),
-    data: prependToTail.getData(),
   });
 };
 
