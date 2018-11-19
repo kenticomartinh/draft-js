@@ -52,7 +52,6 @@ const updateExistingBlock = (
       fragmentBlock.getCharacterList(),
       targetOffset,
     ),
-    data: fragmentBlock.getData(),
   });
 
   return contentState.merge({
